@@ -74,6 +74,19 @@ def insert_dim_province_population_level(data):
 
     return data    
 
+def insert_dim_province_detail_level(data):
+    column_start = ["location iso code", "area (km2)", \
+        "longitude", "latitude", "population"]
+    column_end = ["location_code", "area", "longitude", "latitude"]
+
+    data = data[column_start]
+    data = data.drop_duplicates(column_start)
+    data = data.rename({'location iso code': 'location_code'}, axis=1)
+    data = data.rename({'area (km2)': 'area'}, axis=1)
+    data = data[column_end]
+
+    return data        
+
 def insert_dim_case(data):
     column_start = ["new cases", "new deaths", \
          "new recovered", "new active cases", \
@@ -111,6 +124,7 @@ def insert_raw_to_warehouse(schema):
     dim_location = insert_dim_location(data)
     dim_province = insert_dim_province(data)
     dim_province_population_level = insert_dim_province_population_level(data)
+    dim_province_detail_level = insert_dim_province_detail_level(data)
     dim_case = insert_dim_case(data)
 
     postgre_auth = PostgreSQL(credential['postgresql_warehouse'])
@@ -119,6 +133,8 @@ def insert_raw_to_warehouse(schema):
     dim_location.to_sql('dim_location', schema=schema, con=engine, index=False, if_exists='replace')
     dim_province.to_sql('dim_province', schema=schema, con=engine, index=False, if_exists='replace')
     dim_province_population_level.to_sql('dim_province_population_level', schema=schema, con=engine, index=False, if_exists='replace')
+    dim_province_detail_level.to_sql('dim_province_detail_level', schema=schema, con=engine, \
+         index=False, if_exists='replace')
     dim_case.to_sql('dim_case', schema=schema, con=engine, index=False, if_exists='replace')
 
     engine.dispose()
