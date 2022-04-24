@@ -8,7 +8,7 @@ from connection.mysql import MySQL
 from connection.postgresql import PostgreSQL
 
 # IMPORT SQL
-from sql.query import create_table_dim
+from sql.query import create_table_dim, create_table_fact
 
 
 with open ('credential.json', "r") as cred:                                         # cred = open('credential.json', 'r')
@@ -115,6 +115,31 @@ def insert_dim_case(data):
 
     return data
 
+def insert_fact_province_daily(data, dim_case):
+    column_start = ["date", "location iso code", "new cases per million", "new cases", "new deaths", \
+         "new recovered", "new active cases", "total cases", "total deaths", "total recovered", \
+         "total active cases"]
+    column_end = ['date', 'location_code', 'new_cases_per_million', 'status', 'total']
+
+    # AGGREGATE
+    data = data[column_start]
+    data = data.melt(id_vars=["date", "location iso code", "new cases per million"], \
+         var_name="status", value_name="total").sort_values(["date", "location iso code", "status"])
+    data = data.groupby(by=['date', 'location iso code', 'new cases per million', 'status']).sum()
+    data = data.reset_index()
+
+    # REFORMAT
+    data.columns = column_end
+    data['id'] = np.arange(1, data.shape[0]+1)
+
+    # MERGE
+    dim_case = dim_case.rename({'id': 'case_id'}, axis=1)
+    data = pd.merge(data, dim_case, how='inner', on='status')
+    
+    data = data[['date', "id", "case_id", 'location_code', 'new_cases_per_million', 'status', 'total']]
+    
+    return data
+
 def insert_raw_to_warehouse(schema):
     mysql_auth = MySQL(credential['mysql_lake'])
     engine, engine_conn = mysql_auth.connect()
@@ -138,6 +163,8 @@ def insert_raw_to_warehouse(schema):
     dim_province_detail_level = insert_dim_province_detail_level(data)
     dim_case = insert_dim_case(data)
 
+    fact_province_daily = insert_fact_province_daily(data, dim_case)
+
     postgre_auth = PostgreSQL(credential['postgresql_warehouse'])
     engine, engine_conn = postgre_auth.connect(conn_type='engine')
 
@@ -148,6 +175,8 @@ def insert_raw_to_warehouse(schema):
     dim_province_detail_level.to_sql('dim_province_detail_level', schema=schema, con=engine, \
          index=False, if_exists='replace')
     dim_case.to_sql('dim_case', schema=schema, con=engine, index=False, if_exists='replace')
+
+    fact_province_daily.to_sql('fact_province_daily', schema=schema, con=engine, index=False, if_exists='replace')  
 
     engine.dispose()
 
