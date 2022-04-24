@@ -37,6 +37,7 @@ def create_table_fact(schema):
     case_id primary key,
     location_code text,
     new_cases_per_million float,
+    total_cases_per_million float,
     status text,
     total bigint);
   """
