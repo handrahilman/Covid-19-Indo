@@ -65,9 +65,9 @@ def insert_dim_population_detail(data):
     column_end = ["location iso code", "population_level"]
 
     data = data[column_start]
-    # data = data[:1]
     data = data.melt(id_vars=["location iso code"], var_name="population_level", value_name="total")
-    # data = data.drop_duplicates("population_level").sort_values("population_level")
+    data = data.groupby(by=['location iso code', 'population_level']).sum()
+    data = data.reset_index()
     data = data[column_end]
     data = data.rename({'location iso code': 'location_code'}, axis=1)
     data['population_level'] = data['population_level'].apply(lambda x: x[6:])
@@ -113,12 +113,6 @@ def insert_raw_to_warehouse(schema):
     dim_population_detail = insert_dim_population_detail(data)
     dim_case = insert_dim_case(data)
 
-    # fact_province_daily = insert_fact_province_daily(data, dim_case)
-    # fact_province_monthly = insert_fact_province_monthly(data, dim_case)
-    # fact_province_yearly = insert_fact_province_yearly(data, dim_case)
-    # fact_district_monthly = insert_fact_district_monthly(data, dim_case)
-    # fact_district_yearly = insert_fact_district_yearly(data, dim_case)
-
     postgre_auth = PostgreSQL(credential['postgresql_warehouse'])
     engine, engine_conn = postgre_auth.connect(conn_type='engine')
 
@@ -126,12 +120,6 @@ def insert_raw_to_warehouse(schema):
     dim_province.to_sql('dim_province', schema=schema, con=engine, index=False, if_exists='replace')
     dim_population_detail.to_sql('dim_population_detail', schema=schema, con=engine, index=False, if_exists='replace')
     dim_case.to_sql('dim_case', schema=schema, con=engine, index=False, if_exists='replace')
-
-    # fact_province_daily.to_sql('fact_province_daily', schema=schema, con=engine, index=False, if_exists='replace')
-    # fact_province_monthly.to_sql('fact_province_monthly', schema=schema, con=engine, index=False, if_exists='replace')
-    # fact_province_yearly.to_sql('fact_province_yearly', schema=schema, con=engine, index=False, if_exists='replace')
-    # fact_district_monthly.to_sql('fact_district_monthly', schema=schema, con=engine, index=False, if_exists='replace')
-    # fact_district_yearly.to_sql('fact_district_yearly', schema=schema, con=engine, index=False, if_exists='replace')
 
     engine.dispose()
 
