@@ -27,3 +27,18 @@ def create_table_dim(schema):
   """
 
   return query
+
+  
+def create_table_fact(schema):
+  query = f"""
+  CREATE TABLE IF NOT EXISTS {schema}.fact_province_daily (
+    date text,
+    id SERIAL,
+    case_id primary key,
+    location_code text,
+    new_cases_per_million float,
+    status text,
+    total bigint);
+  """
+
+  return query
