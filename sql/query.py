@@ -10,6 +10,10 @@ def create_table_dim(schema):
   CREATE TABLE IF NOT EXISTS {schema}.dim_province_population_level (
       location_code text primary key,
       population_level text);
+  CREATE TABLE IF NOT EXISTS {schema}.dim_province_population_total (
+      location_code text primary key,
+      population_density int,
+      population int);
   CREATE TABLE IF NOT EXISTS {schema}.dim_province_detail_level (
       location_code text primary key,
       area int,
