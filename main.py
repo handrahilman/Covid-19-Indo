@@ -116,16 +116,16 @@ def insert_dim_case(data):
     return data
 
 def insert_fact_province_daily(data, dim_case):
-    column_start = ["date", "location iso code", "new cases per million", "new cases", "new deaths", \
+    column_start = ["date", "location iso code", "new cases per million", "total cases per million", "new cases", "new deaths", \
          "new recovered", "new active cases", "total cases", "total deaths", "total recovered", \
          "total active cases"]
-    column_end = ['date', 'location_code', 'new_cases_per_million', 'status', 'total']
+    column_end = ['date', 'location_code', 'new_cases_per_million', 'total_cases_per_million', 'status', 'total']
 
     # AGGREGATE
     data = data[column_start]
-    data = data.melt(id_vars=["date", "location iso code", "new cases per million"], \
+    data = data.melt(id_vars=["date", "location iso code", "new cases per million", 'total cases per million'], \
          var_name="status", value_name="total").sort_values(["date", "location iso code", "status"])
-    data = data.groupby(by=['date', 'location iso code', 'new cases per million', 'status']).sum()
+    data = data.groupby(by=['date', 'location iso code', 'new cases per million', 'total cases per million', 'status']).sum()
     data = data.reset_index()
 
     # REFORMAT
@@ -136,7 +136,7 @@ def insert_fact_province_daily(data, dim_case):
     dim_case = dim_case.rename({'id': 'case_id'}, axis=1)
     data = pd.merge(data, dim_case, how='inner', on='status')
     
-    data = data[['date', "id", "case_id", 'location_code', 'new_cases_per_million', 'status', 'total']]
+    data = data[['date', "id", "case_id", 'location_code', 'new_cases_per_million', 'total_cases_per_million', 'status', 'total']]
     
     return data
 
