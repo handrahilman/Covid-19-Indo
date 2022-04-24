@@ -8,7 +8,7 @@ from connection.mysql import MySQL
 from connection.postgresql import PostgreSQL
 
 # IMPORT SQL
-from sql.query import create_table_dim, create_table_fact
+from sql.query import create_table_dim
 
 
 with open ('credential.json', "r") as cred:                                         # cred = open('credential.json', 'r')
@@ -32,9 +32,9 @@ def create_star_schema(schema):
   cursor.execute(query_dim)
   conn.commit()
 
-  query_fact = create_table_fact(schema=schema)
-  cursor.execute(query_fact)
-  conn.commit()
+#   query_fact = create_table_fact(schema=schema)
+#   cursor.execute(query_fact)
+#   conn.commit()
 
   cursor.close()
   conn.close()
@@ -59,7 +59,7 @@ def insert_dim_province(data):
 
     return data
 
-def insert_dim_population_detail(data):
+def insert_dim_province_population_level(data):
     column_start = ["location iso code", "total regencies", \
         "total cities", "total districts", "total urban villages", "total rural villages"]
     column_end = ["location iso code", "population_level"]
@@ -110,7 +110,7 @@ def insert_raw_to_warehouse(schema):
 
     dim_location = insert_dim_location(data)
     dim_province = insert_dim_province(data)
-    dim_population_detail = insert_dim_population_detail(data)
+    dim_province_population_level = insert_dim_province_population_level(data)
     dim_case = insert_dim_case(data)
 
     postgre_auth = PostgreSQL(credential['postgresql_warehouse'])
@@ -118,7 +118,7 @@ def insert_raw_to_warehouse(schema):
 
     dim_location.to_sql('dim_location', schema=schema, con=engine, index=False, if_exists='replace')
     dim_province.to_sql('dim_province', schema=schema, con=engine, index=False, if_exists='replace')
-    dim_population_detail.to_sql('dim_population_detail', schema=schema, con=engine, index=False, if_exists='replace')
+    dim_province_population_level.to_sql('dim_province_population_level', schema=schema, con=engine, index=False, if_exists='replace')
     dim_case.to_sql('dim_case', schema=schema, con=engine, index=False, if_exists='replace')
 
     engine.dispose()
