@@ -40,6 +40,15 @@ def create_table_fact(schema):
     total_cases_per_million float,
     status text,
     total bigint);
+  CREATE TABLE IF NOT EXISTS {schema}.fact_province_monthly (
+    date text,
+    id SERIAL,
+    case_id primary key,
+    location_code text,
+    new_cases_per_million float,
+    total_cases_per_million float,
+    status text,
+    total bigint);
   """
 
   return query
