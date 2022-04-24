@@ -4,12 +4,17 @@ def create_table_dim(schema):
     location_code text primary key,
     location text);
   CREATE TABLE IF NOT EXISTS {schema}.dim_province (
-      location_code text primary key,
-      location text,
-      location_level text);
+    province text primary key,
+    location text,
+    location_level text);
   CREATE TABLE IF NOT EXISTS {schema}.dim_province_population_level (
       location_code text primary key,
       population_level text);
+  CREATE TABLE IF NOT EXISTS {schema}.dim_province_detail_level (
+      location_code text primary key,
+      area int,
+      longitude int,
+      latitude int);
   CREATE TABLE IF NOT EXISTS {schema}.dim_case (
       id SERIAL primary key,
       status_name text,
